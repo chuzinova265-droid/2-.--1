@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Словарный диктант № 2</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 750px; margin: 20px auto; background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%); color: #333; padding: 15px; }
+        .container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); border: 3px solid #4fc3f7; position: relative; overflow: hidden; }
+        h1 { color: #0277bd; text-align: center; margin-top: 0; margin-bottom: 5px; font-size: 1.8em; }
+        .motto { text-align: center; color: #ff5722; font-weight: bold; font-size: 1.2em; margin-bottom: 20px; }
+        .instruction { text-align: center; font-size: 1.1em; color: #00796b; font-weight: bold; margin-bottom: 20px; background: #e0f2f1; padding: 10px; border-radius: 10px; }
+        .question { margin-bottom: 30px; border: 2px solid #b3e5fc; padding: 20px; border-radius: 15px; background: #fff; transition: 0.3s; }
+        .q-emoji { display: block; text-align: center; font-size: 70px; margin-bottom: 15px; }
+        .question p { font-weight: bold; font-size: 1.15em; margin: 3px 0 5px 0; line-height: 1.3; white-space: pre-line; }
+        .riddle-text { background: #f9fbe7; padding: 10px 15px; border-radius: 12px; margin-bottom: 15px; font-style: italic; border-left: 5px solid #ffb74d; }
+        
+        /* Увеличенный шрифт на кнопках */
+        .btn-main { 
+            display: block; width: 100%; max-width: 320px; margin: 25px auto; padding: 15px; 
+            background: #ff7043; color: white; border: none; border-radius: 50px; 
+            font-size: 1.4rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: 0.2s;
+        }
+        .btn-main:hover { background: #f4511e; transform: scale(1.02); }
+        
+        .btn-read {
+            background: #66bb6a;
+            margin: 10px 0;
+        }
+        .btn-read:hover { background: #4caf50; }
+        
+        .name-input { padding: 15px; width: 100%; box-sizing: border-box; margin-bottom: 10px; border: 2px solid #4fc3f7; border-radius: 10px; font-size: 1.1em; }
+        .hidden { display: none; }
+        .correct-answer { border-left: 10px solid #4caf50; background: #e8f5e9; }
+        .wrong-answer { border-left: 10px solid #f44336; background: #ffebee; }
+        .feedback { font-weight: bold; margin-top: 10px; display: block; font-size: 1.05em; }
+        
+        /* Сообщение об ошибке имени */
+        .name-error {
+            color: #d32f2f;
+            background: #ffebee;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            margin: 5px 0 15px 0;
+            text-align: center;
+            border-left: 4px solid #d32f2f;
+        }
+        
+        /* Анимация сердечек */
+        .hearts-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; overflow: hidden; }
+        .heart { position: absolute; font-size: 28px; opacity: 0; animation: heartAnimation 2.5s ease-out forwards; }
+        @keyframes heartAnimation {
+            0% { opacity: 0; transform: translate(0, 0) scale(0); }
+            15% { opacity: 1; }
+            100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(1.2); }
+        }
+        
+        .result-card { position: relative; z-index: 2; background: #fff9c4; padding: 30px; border-radius: 20px; text-align: center; margin-top: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .result-card h2 { font-size: 1.6em; margin-bottom: 15px; }
+        
+        .woodpecker-img {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            display: inline-block;
+        }
+        
+        .options-area {
+            margin-top: 15px;
+        }
+        
+        /* Скрываем блок с вариантами ответа по умолчанию */
+        .options-area.hidden-options {
+            display: none;
+        }
+        
+        .read-btn-wrapper {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+        
+        /* Шевелящиеся кнопки с вариантами ответов — крупные и сочные */
+        .option {
+            margin: 12px 0;
+            display: block;
+            cursor: pointer;
+            padding: 14px 18px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #f1f8ff 0%, #e3f2fd 100%);
+            border: 2px solid #4fc3f7;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .option:hover {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            transform: translateX(8px) scale(1.02);
+            border-color: #ff9800;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .answer-text {
+            font-size: 1.4rem;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            color: #01579b;
+        }
+        
+        input[type="radio"] {
+            transform: scale(1.4);
+            margin-right: 15px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Контейнер для сердечек -->
+    <div class="hearts-container" id="heartsContainer"></div>
+    
+    <!-- ЭКРАН 1 -->
+    <div id="setup">
+        <h1>Словарный диктант № 2</h1>
+        <div class="motto">Ошибкам — бой, словарь — со мной!</div>
+        <p style="text-align: center;">Привет! Напиши свою фамилию и имя:</p>
+        <input type="text" id="studentName" class="name-input" placeholder="Иванов Иван">
+        <div id="nameWarning" class="hidden name-error"></div>
+        <button class="btn-main" onclick="startTest()">📖 Начать диктант</button>
+    </div>
+
+    <!-- ЭКРАН 2 (Викторина) -->
+    <div id="quiz" class="hidden">
+        <div class="instruction">🌟 Отгадай загадку. Нажми «Загадка прочитана» — появятся варианты ответов! 🌟</div>
+        
+        <div id="questions-list">
+            <!-- ЗАДАНИЕ 1 -->
+            <div class="question" data-answer="лопата" data-read="false">
+                <div class="riddle-text">
+                    <span class="q-emoji">⛏️</span>
+                    <p><strong>Задание 1.</strong><br>Железный нос в землю врос.<br>Роет, копает, землю взрыхляет.</p>
+                </div>
+                <div class="read-btn-wrapper">
+                    <button class="btn-main btn-read" onclick="markAsRead(this)">📖 Загадка прочитана</button>
+                </div>
+                <div class="options-area hidden-options">
+                    <label class="option"><input type="radio" name="q1" value="лопта"> <span class="answer-text">лопта</span></label>
+                    <label class="option"><input type="radio" name="q1" value="лапата"> <span class="answer-text">лапата</span></label>
+                    <label class="option"><input type="radio" name="q1" value="лопата"> <span class="answer-text">лопата</span></label>
+                    <span class="feedback hidden"></span>
+                </div>
+            </div>
+            
+            <!-- ЗАДАНИЕ 2 (ДЯТЕЛ — картинка по ссылке) -->
+            <div class="question" data-answer="дятел" data-read="false">
+                <div class="riddle-text">
+                    <div class="q-emoji">
+                        <img class="woodpecker-img" src="https://img.freepik.com/premium-vector/cartoon-woodpecker-tree_1198035-3305.jpg?semt=ais_hybrid" alt="Дятел" onerror="this.onerror=null; this.parentElement.innerHTML='🦜'; this.parentElement.style.fontSize='70px';">
+                    </div>
+                    <p><strong>Задание 2.</strong><br>Кто в лесу деревья лечит,<br>Не жалея головы?<br>Тяжела его работа –<br>Целый день долбить стволы.</p>
+                </div>
+                <div class="read-btn-wrapper">
+                    <button class="btn-main btn-read" onclick="markAsRead(this)">📖 Загадка прочитана</button>
+                </div>
+                <div class="options-area hidden-options">
+                    <label class="option"><input type="radio" name="q2" value="дятел"> <span class="answer-text">дятел</span></label>
+                    <label class="option"><input type="radio" name="q2" value="дятил"> <span class="answer-text">дятил</span></label>
+                    <label class="option"><input type="radio" name="q2" value="дятл"> <span class="answer-text">дятл</span></label>
+                    <span class="feedback hidden"></span>
+                </div>
+            </div>
+            
+            <!-- ЗАДАНИЕ 3 -->
+            <div class="question" data-answer="картина" data-read="false">
+                <div class="riddle-text">
+                    <span class="q-emoji">🖼️</span>
+                    <p><strong>Задание 3.</strong><br>Возьму я краски, кисть,<br>Нарисую дом и лес,<br>И речку ввысь...</p>
+                </div>
+                <div class="read-btn-wrapper">
+                    <button class="btn-main btn-read" onclick="markAsRead(this)">📖 Загадка прочитана</button>
+                </div>
+                <div class="options-area hidden-options">
+                    <label class="option"><input type="radio" name="q3" value="картина"> <span class="answer-text">картина</span></label>
+                    <label class="option"><input type="radio" name="q3" value="кортина"> <span class="answer-text">кортина</span></label>
+                    <label class="option"><input type="radio" name="q3" value="карина"> <span class="answer-text">карина</span></label>
+                    <span class="feedback hidden"></span>
+                </div>
+            </div>
+            
+            <!-- ЗАДАНИЕ 4 -->
+            <div class="question" data-answer="корзина" data-read="false">
+                <div class="riddle-text">
+                    <span class="q-emoji">🧺</span>
+                    <p><strong>Задание 4.</strong><br>Когда за грибами ты в рощу идёшь,<br>Её непременно с собою берёшь.</p>
+                </div>
+                <div class="read-btn-wrapper">
+                    <button class="btn-main btn-read" onclick="markAsRead(this)">📖 Загадка прочитана</button>
+                </div>
+                <div class="options-area hidden-options">
+                    <label class="option"><input type="radio" name="q4" value="карзина"> <span class="answer-text">карзина</span></label>
+                    <label class="option"><input type="radio" name="q4" value="корзина"> <span class="answer-text">корзина</span></label>
+                    <label class="option"><input type="radio" name="q4" value="козина"> <span class="answer-text">козина</span></label>             
+                    <span class="feedback hidden"></span>
+                </div>
+            </div>
+
+            <!-- ЗАДАНИЕ 5 -->
+            <div class="question" data-answer="лисица" data-read="false">
+                <div class="riddle-text">
+                    <span class="q-emoji">🦊</span>
+                    <p><strong>Задание 5.</strong><br>Всех в лесу она хитрей,<br>Шубка рыжая на ней.<br>А зовут её ...</p>
+                </div>
+                <div class="read-btn-wrapper">
+                    <button class="btn-main btn-read" onclick="markAsRead(this)">📖 Загадка прочитана</button>
+                </div>
+                <div class="options-area hidden-options">
+                    <label class="option"><input type="radio" name="q5" value="лисица"> <span class="answer-text">лисица</span></label>
+                    <label class="option"><input type="radio" name="q5" value="лесица"> <span class="answer-text">лесица</span></label>
+                    <label class="option"><input type="radio" name="q5" value="лис"> <span class="answer-text">лис</span></label>
+                    <span class="feedback hidden"></span>
+                </div>
+            </div>
+
+            <!-- ЗАДАНИЕ 6 -->
+            <div class="question" data-answer="одежда" data-read="false">
+                <div class="riddle-text">
+                    <span class="q-emoji">👕</span>
+                    <p><strong>Задание 6.</strong><br>Брюки и пиджак вдвоём<br>Мы .... назовём.</p>
+                </div>
+                <div class="read-btn-wrapper">
+                    <button class="btn-main btn-read" onclick="markAsRead(this)">📖 Загадка прочитана</button>
+                </div>
+                <div class="options-area hidden-options">
+                    <label class="option"><input type="radio" name="q6" value="одежа"> <span class="answer-text">одежа</span></label>
+                    <label class="option"><input type="radio" name="q6" value="адежда"> <span class="answer-text">адежда</span></label>
+                    <label class="option"><input type="radio" name="q6" value="одежда"> <span class="answer-text">одежда</span></label>
+                    <span class="feedback hidden"></span>
+                </div>
+            </div>
+            
+            <!-- ЗАДАНИЕ 7 -->
+            <div class="question" data-answer="коньки" data-read="false">
+                <div class="riddle-text">
+                    <span class="q-emoji">⛸️</span>
+                    <p><strong>Задание 7.</strong><br>Льда коснулись - покатились,<br>В танце быстром закружились.</p>
+                </div>
+                <div class="read-btn-wrapper">
+                    <button class="btn-main btn-read" onclick="markAsRead(this)">📖 Загадка прочитана</button>
+                </div>
+                <div class="options-area hidden-options">
+                    <label class="option"><input type="radio" name="q7" value="коньки"> <span class="answer-text">коньки</span></label>
+                    <label class="option"><input type="radio" name="q7" value="гонки"> <span class="answer-text">гонки</span></label>
+                    <label class="option"><input type="radio" name="q7" value="каньки"> <span class="answer-text">каньки</span></label>
+                    <span class="feedback hidden"></span>
+                </div>
+            </div>
+            
+            <!-- ЗАДАНИЕ 8 -->
+            <div class="question" data-answer="обед" data-read="false">
+                <div class="riddle-text">
+                    <span class="q-emoji">🍲</span>
+                    <p><strong>Задание 8.</strong><br>После школы мы идем,<br>Руки моем, суп берем.<br>Вкусно пахнет от котлет —<br>Значит, начался...</p>
+                </div>
+                <div class="read-btn-wrapper">
+                    <button class="btn-main btn-read" onclick="markAsRead(this)">📖 Загадка прочитана</button>
+                </div>
+                <div class="options-area hidden-options">
+                    <label class="option"><input type="radio" name="q8" value="абед"> <span class="answer-text">абед</span></label>
+                    <label class="option"><input type="radio" name="q8" value="обед"> <span class="answer-text">обед</span></label>
+                    <label class="option"><input type="radio" name="q8" value="объед"> <span class="answer-text">объед</span></label>
+                    <span class="feedback hidden"></span>
+                </div>
+            </div>
+            
+            <!-- ЗАДАНИЕ 9 (овощи с набором эмодзи) -->
+            <div class="question" data-answer="овощи" data-read="false">
+                <div class="riddle-text">
+                    <span class="q-emoji">🥕🍅🥒🥦🥔</span>
+                    <p><strong>Задание 9.</strong><br>Свекла́, огурчик и томат —<br>Стать салатом все спешат.<br>На грядках дружно приживались,<br>Одним словом назывались!</p>
+                </div>
+                <div class="read-btn-wrapper">
+                    <button class="btn-main btn-read" onclick="markAsRead(this)">📖 Загадка прочитана</button>
+                </div>
+                <div class="options-area hidden-options">
+                    <label class="option"><input type="radio" name="q9" value="оващи"> <span class="answer-text">оващи</span></label>
+                    <label class="option"><input type="radio" name="q9" value="овощ"> <span class="answer-text">овощ</span></label>
+                    <label class="option"><input type="radio" name="q9" value="овощи"> <span class="answer-text">овощи</span></label>
+                    <span class="feedback hidden"></span>
+                </div>
+            </div>
+            
+            <!-- ЗАДАНИЕ 10 -->
+            <div class="question" data-answer="обезьяна" data-read="false">
+                <div class="riddle-text">
+                    <span class="q-emoji">🐒</span>
+                    <p><strong>Задание 10.</strong><br>На ветках качается,<br>Хвостом цепляется.<br>Любит сладкие бананы —<br>Это...</p>
+                </div>
+                <div class="read-btn-wrapper">
+                    <button class="btn-main btn-read" onclick="markAsRead(this)">📖 Загадка прочитана</button>
+                </div>
+                <div class="options-area hidden-options">
+                    <label class="option"><input type="radio" name="q10" value="абезьяна"> <span class="answer-text">абезьяна</span></label>
+                    <label class="option"><input type="radio" name="q10" value="обезьяна"> <span class="answer-text">обезьяна</span></label>
+                    <label class="option"><input type="radio" name="q10" value="обезьйана"> <span class="answer-text">обезьйана</span></label>
+                    <span class="feedback hidden"></span>
+                </div>
+            </div>
+            
+            <!-- ЗАДАНИЕ 11 -->
+            <div class="question" data-answer="праздник" data-read="false">
+                <div class="riddle-text">
+                    <span class="q-emoji">🎉</span>
+                    <p><strong>Задание 11.</strong><br>Красный день в календаре,<br>Радость дарит детворе.<br>Торт, подарки и печенье -<br>Это ... и веселье.</p>
+                </div>
+                <div class="read-btn-wrapper">
+                    <button class="btn-main btn-read" onclick="markAsRead(this)">📖 Загадка прочитана</button>
+                </div>
+                <div class="options-area hidden-options">
+                    <label class="option"><input type="radio" name="q11" value="празник"> <span class="answer-text">празник</span></label>
+                    <label class="option"><input type="radio" name="q11" value="празднек"> <span class="answer-text">празднек</span></label>
+                    <label class="option"><input type="radio" name="q11" value="праздник"> <span class="answer-text">праздник</span></label>
+                    <span class="feedback hidden"></span>
+                </div>
+            </div>
+            
+            <!-- ЗАДАНИЕ 12 -->
+            <div class="question" data-answer="капуста" data-read="false">
+                <div class="riddle-text">
+                    <span class="q-emoji">🥬</span>
+                    <p><strong>Задание 12.</strong><br>Как одела сто рубах,<br>Захрустела на зубах.</p>
+                </div>
+                <div class="read-btn-wrapper">
+                    <button class="btn-main btn-read" onclick="markAsRead(this)">📖 Загадка прочитана</button>
+                </div>
+                <div class="options-area hidden-options">
+                    <label class="option"><input type="radio" name="q12" value="копуста"> <span class="answer-text">копуста</span></label>
+                    <label class="option"><input type="radio" name="q12" value="капуста"> <span class="answer-text">капуста</span></label>
+                    <label class="option"><input type="radio" name="q12" value="капузта"> <span class="answer-text">капузта</span></label>
+                    <span class="feedback hidden"></span>
+                </div>
+            </div>
+            
+            <!-- ЗАДАНИЕ 13 -->
+            <div class="question" data-answer="ветер" data-read="false">
+                <div class="riddle-text">
+                    <span class="q-emoji">🌬️</span>
+                    <p><strong>Задание 13.</strong><br>Тучи нагоняет,<br>Воет, задувает.<br>По све́ту ры́щет,<br>Поёт да сви́щет.</p>
+                </div>
+                <div class="read-btn-wrapper">
+                    <button class="btn-main btn-read" onclick="markAsRead(this)">📖 Загадка прочитана</button>
+                </div>
+                <div class="options-area hidden-options">
+                    <label class="option"><input type="radio" name="q13" value="ветер"> <span class="answer-text">ветер</span></label>
+                    <label class="option"><input type="radio" name="q13" value="ветир"> <span class="answer-text">ветир</span></label>
+                    <label class="option"><input type="radio" name="q13" value="витрище"> <span class="answer-text">витрище</span></label>
+                    <span class="feedback hidden"></span>
+                </div>
+            </div>
+            
+            <!-- ЗАДАНИЕ 14 -->
+            <div class="question" data-answer="весело" data-read="false">
+                <div class="riddle-text">
+                    <span class="q-emoji">😄</span>
+                    <p><strong>Задание 14.</strong><br>Мы решили поиграть,<br>Стали змея запускать,<br>Распевали песенки,<br>Было очень…</p>
+                </div>
+                <div class="read-btn-wrapper">
+                    <button class="btn-main btn-read" onclick="markAsRead(this)">📖 Загадка прочитана</button>
+                </div>
+                <div class="options-area hidden-options">
+                    <label class="option"><input type="radio" name="q14" value="весило"> <span class="answer-text">весило</span></label>
+                    <label class="option"><input type="radio" name="q14" value="весела"> <span class="answer-text">весела</span></label>
+                    <label class="option"><input type="radio" name="q14" value="весело"> <span class="answer-text">весело</span></label>
+                    <span class="feedback hidden"></span>
+                </div>
+            </div>
+        </div>
+        
+        <button id="submit-btn" class="btn-main" onclick="submitTest()">✨ Закончить и проверить ✨</button>
+    </div>
+
+    <div id="resultMessage" class="hidden"></div>
+</div>
+
+<script>
+    // Функция отметки прочтения загадки — ПОКАЗЫВАЕМ варианты ответов
+    function markAsRead(btn) {
+        const questionDiv = btn.closest('.question');
+        const optionsArea = questionDiv.querySelector('.options-area');
+        const readBtn = questionDiv.querySelector('.btn-read');
+        
+        // ПОКАЗЫВАЕМ блок с вариантами ответов (убираем hidden-options)
+        optionsArea.classList.remove('hidden-options');
+        
+        // Блокируем кнопку "Загадка прочитана"
+        readBtn.disabled = true;
+        readBtn.innerText = "✅ Прочитано";
+        readBtn.style.opacity = '0.7';
+        
+        // Отмечаем что вопрос прочитан
+        questionDiv.setAttribute('data-read', 'true');
+    }
+    
+    // Функция старта с проверкой ФАМИЛИИ + ИМЕНИ
+    function startTest() {
+        const nameInput = document.getElementById('studentName');
+        const fullName = nameInput.value.trim();
+        const nameWarning = document.getElementById('nameWarning');
+        
+        // Проверяем, что введено хотя бы два слова (фамилия и имя)
+        const words = fullName.split(/\s+/);
+        const hasTwoParts = words.length >= 2 && words[0].length > 1 && words[1].length > 1;
+        
+        if (!hasTwoParts || fullName === "") {
+            nameWarning.classList.remove('hidden');
+            nameWarning.innerText = "⚠️ Укажи полностью свою фамилию и имя (например: Иванов Иван)";
+            return;
+        }
+        
+        nameWarning.classList.add('hidden');
+        document.getElementById('setup').style.display = 'none';
+        document.getElementById('quiz').classList.remove('hidden');
+        window.scrollTo(0, 0);
+    }
+
+    // Анимация сердечек (звездопад из сердечек)
+    function createHeartsAnimation() {
+        const heartsContainer = document.getElementById('heartsContainer');
+        const heartSymbols = ['❤️', '💚', '🩶', '🩵', '🤎', '💛', '💙', '💜', '♥️', '💝'];
+        
+        // Очищаем контейнер
+        heartsContainer.innerHTML = '';
+        
+        // Создаём 70 сердечек для яркого эффекта
+        for (let i = 0; i < 70; i++) {
+            const heart = document.createElement('div');
+            heart.className = 'heart';
+            heart.innerHTML = heartSymbols[Math.floor(Math.random() * heartSymbols.length)];
+            // Начальная позиция — центр контейнера
+            heart.style.left = '50%';
+            heart.style.top = '50%';
+            // Случайное направление разлёта
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 100 + Math.random() * 200;
+            const tx = Math.cos(angle) * distance;
+            const ty = Math.sin(angle) * distance - 60;
+            heart.style.setProperty('--tx', `${tx}px`);
+            heart.style.setProperty('--ty', `${ty}px`);
+            heart.style.animationDelay = `${Math.random() * 0.8}s`;
+            heart.style.fontSize = `${22 + Math.random() * 28}px`;
+            heartsContainer.appendChild(heart);
+            
+            // Удаляем сердечко после анимации
+            setTimeout(() => {
+                if (heart.parentNode) heart.remove();
+            }, 2600);
+        }
+    }
+
+    // Основная функция проверки (без отправки в таблицу)
+    function submitTest() {
+        const questions = document.querySelectorAll('.question');
+        let allRead = true;
+        
+        // Проверяем, что все загадки прочитаны (и варианты ответов показаны)
+        questions.forEach(q => {
+            if (q.getAttribute('data-read') !== 'true') {
+                allRead = false;
+                q.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const btn = q.querySelector('.btn-read');
+                if (btn) btn.style.animation = 'shake 0.5s ease-in-out';
+                setTimeout(() => {
+                    if (btn) btn.style.animation = '';
+                }, 500);
+            }
+        });
+        
+        if (!allRead) {
+            alert('Пожалуйста, прочитай все загадки и нажми кнопку «Загадка прочитана» под каждой!');
+            return;
+        }
+        
+        let score = 0;
+        const submitBtn = document.getElementById('submit-btn');
+        submitBtn.disabled = true;
+        submitBtn.innerText = "🔍 Проверяем...";
+        
+        questions.forEach((q, index) => {
+            const qName = "q" + (index + 1);
+            const selected = document.querySelector(`input[name="${qName}"]:checked`);
+            const correctAnswer = q.getAttribute('data-answer');
+            const feedback = q.querySelector('.feedback');
+            feedback.classList.remove('hidden');
+            
+            if (selected && selected.value === correctAnswer) {
+                score++;
+                q.classList.add('correct-answer');
+                q.classList.remove('wrong-answer');
+                feedback.innerText = "✅ Верно!";
+                feedback.style.color = "#2e7d32";
+            } else {
+                q.classList.add('wrong-answer');
+                q.classList.remove('correct-answer');
+                feedback.innerText = "❌ Ошибка! Правильный ответ: " + correctAnswer;
+                feedback.style.color = "#c62828";
+            }
+            q.querySelectorAll('input').forEach(i => i.disabled = true);
+        });
+        
+        const resDiv = document.getElementById('resultMessage');
+        resDiv.classList.remove('hidden');
+        
+        // ЗАПУСКАЕМ анимацию сердечек
+        createHeartsAnimation();
+        
+        // Мотивирующее сообщение — ВСЕ фразы выделены жирным шрифтом
+        let motivationMessage = "";
+        const errorsCount = questions.length - score;
+        if (errorsCount === 0) {
+            motivationMessage = "<strong>🎓 Идеально! Ты настоящий знаток словарных слов!</strong>";
+        } else if (errorsCount <= 5) {
+            motivationMessage = "<strong>📚 Хороший результат! Выучи слова ещё разок — и будет 5!</strong>";
+        } else {
+            motivationMessage = "<strong>💪 Не сдавайся! Заставь себя выучить словарные слова — у тебя получится!</strong>";
+        }
+        
+        setTimeout(() => {
+            resDiv.innerHTML = `<div class="result-card">
+                <h2>🏆 Твой результат: ${score} из ${questions.length} 🏆</h2>
+                <p style="font-size: 1.4rem; margin-top: 15px;">${motivationMessage}</p>
+                <hr>
+                <p style="font-size: 1.2rem; color: #0277bd;"><strong>Спасибо за работу! Желаю успехов в русском языке!</strong></p>
+            </div>`;
+            submitBtn.innerText = "✅ Работа проверена";
+        }, 400);
+    }
+</script>
+</body>
+</html>
